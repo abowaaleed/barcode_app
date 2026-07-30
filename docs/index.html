@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html dir="rtl">
 <head>
-  <base href="/">
+  <base href="/barcode_app/">
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="مولّد الباركود الذكي v1.3.0 - إنشاء رموز QR احترافية">
@@ -62,7 +62,7 @@
         err.style.display = 'flex';
         err.querySelector('#error-detail').textContent = 'انتهت مهلة التحميل. قد يكون التطبيق بحاجة إلى تحديث.';
       }
-    }, 20000);
+    }, 60000);
     window.addEventListener('error', function(e) {
       var err = document.getElementById('error-container');
       if (err) {
