@@ -87,7 +87,19 @@ class QrExport {
     html.Url.revokeObjectUrl(url);
   }
 
+  static void _addWatermark(html.CanvasRenderingContext2D ctx, num canvasSize) {
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = '#6C63FF';
+    ctx.font = '${(canvasSize * 0.035).round()}px Cairo, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('مولّد الباركود الذكي', canvasSize / 2, canvasSize - 8);
+    ctx.restore();
+  }
+
   static void _triggerDownload(html.CanvasElement canvas, String filename) {
+    _addWatermark(canvas.context2D, canvas.width ?? canvas.height ?? 300);
     final dataUrl = canvas.toDataUrl('image/png');
     final anchor = html.AnchorElement()
       ..href = dataUrl

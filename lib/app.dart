@@ -7,7 +7,7 @@ import 'views/home_screen.dart';
 import 'views/history_screen.dart';
 import 'views/form_screen.dart';
 
-const appVersion = 'v1.1.0';
+const appVersion = 'v1.2.0';
 
 class BarcodeApp extends StatelessWidget {
   const BarcodeApp({super.key});

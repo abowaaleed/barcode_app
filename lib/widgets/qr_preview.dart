@@ -26,30 +26,43 @@ class QrPreviewWidget extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     if (data.isEmpty) {
       return Container(
-        height: size + 40,
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCard : Colors.white,
+          color: isDark ? const Color(0xFF1E2A3A) : const Color(0xFFF0F4FF),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: (isDark ? AppColors.textSecondary : AppColors.lightTextSecondary).withValues(alpha: 0.2)),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 1.5),
         ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.qr_code_2, size: 48, color: (isDark ? AppColors.textSecondary : AppColors.lightTextSecondary).withValues(alpha: 0.3)),
-              const SizedBox(height: 8),
-              Text('املأ البيانات لإنشاء الرمز', style: TextStyle(color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary)),
-            ],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(Icons.qr_code_2, size: 48, color: AppColors.primary.withValues(alpha: 0.6)),
+            ),
+            const SizedBox(height: 16),
+            Text('أدخل البيانات لمعاينة الباركود',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
+                color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary)),
+            const SizedBox(height: 4),
+            Text('سيظهر الرمز هنا فور إدخال المعلومات المطلوبة',
+              style: TextStyle(fontSize: 11,
+                color: (isDark ? AppColors.textSecondary : AppColors.lightTextSecondary).withValues(alpha: 0.7))),
+          ],
         ),
       );
     }
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : Colors.white,
+        color: isDark ? const Color(0xFF1E2A3A) : const Color(0xFFF0F4FF),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: (isDark ? AppColors.textSecondary : AppColors.lightTextSecondary).withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.secondary.withValues(alpha: 0.3), width: 1.5),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -67,7 +80,15 @@ class QrPreviewWidget extends StatelessWidget {
             embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(40, 40)),
           ),
           const SizedBox(height: 12),
-          Text('امسح الرمز للبدء', style: TextStyle(fontSize: 12, color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.check_circle, size: 14, color: AppColors.success),
+              const SizedBox(width: 6),
+              Text('باركود جاهز للمسح', style: TextStyle(fontSize: 12,
+                color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary)),
+            ],
+          ),
         ],
       ),
     );
