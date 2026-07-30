@@ -12,7 +12,6 @@ import '../widgets/export_options.dart';
 class FormScreen extends StatelessWidget {
   const FormScreen({super.key});
 
-  @override
   Widget _buildPreview(QrProvider provider) {
     if (provider.selectedType == QrDataType.barcode) {
       final code = provider.formData['code'] as String? ?? '';
@@ -47,6 +46,11 @@ class FormScreen extends StatelessWidget {
         title: Text(provider.selectedType!.title),
         actions: [
           IconButton(
+            icon: Icon(Icons.home_outlined, color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary),
+            tooltip: 'الرئيسية',
+            onPressed: () => Navigator.popUntil(context, (r) => r.isFirst),
+          ),
+          IconButton(
             icon: Icon(Icons.info_outline, color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary),
             onPressed: () => _showInfo(context),
           ),
@@ -59,7 +63,7 @@ class FormScreen extends StatelessWidget {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Expanded(flex: 5, child: DynamicForm()),
+                Expanded(flex: 5, child: SingleChildScrollView(child: const DynamicForm())),
                 const SizedBox(width: 16),
                 Expanded(
                   flex: 4,
@@ -67,12 +71,12 @@ class FormScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 16, bottom: 16, left: 16),
                     child: SingleChildScrollView(
                       child: Column(
-                children: [
-                        _buildPreview(provider),
-                        const SizedBox(height: 16),
-                        const CustomizationPanel(),
-                        const SizedBox(height: 16),
-                        const ExportOptions(),
+                        children: [
+                          _buildPreview(provider),
+                          const SizedBox(height: 16),
+                          const CustomizationPanel(),
+                          const SizedBox(height: 16),
+                          const ExportOptions(),
                         ],
                       ),
                     ),
@@ -84,6 +88,8 @@ class FormScreen extends StatelessWidget {
           return SingleChildScrollView(
             child: Column(
               children: [
+                const DynamicForm(),
+                const Divider(height: 1),
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: _buildPreview(provider),
@@ -96,8 +102,7 @@ class FormScreen extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   child: ExportOptions(),
                 ),
-                const SizedBox(height: 8),
-                const DynamicForm(),
+                const SizedBox(height: 24),
               ],
             ),
           );
