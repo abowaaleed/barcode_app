@@ -544,56 +544,61 @@ class _DateTimeField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final value = provider.formData[fieldKey] as DateTime?;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: InkWell(
-        onTap: () async {
-          final date = await showDatePicker(
-            context: context, initialDate: value ?? DateTime.now(),
-            firstDate: DateTime(2020), lastDate: DateTime(2100),
-          );
-          if (date == null) return;
-          final time = await showTimePicker(
-            context: context, initialTime: value != null ? TimeOfDay.fromDateTime(value) : TimeOfDay.now(),
-          );
-          if (time == null) return;
-          final dt = DateTime(date.year, date.month, date.day, time.hour, time.minute);
-          provider.updateField(fieldKey, dt);
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.textSecondary.withValues(alpha: 0.2) : Colors.grey.shade300),
-          ),
-          child: Row(children: [
-            const Icon(Icons.calendar_today, size: 20, color: AppColors.primary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: TextStyle(fontSize: 12,
-                    color: Theme.of(context).brightness == Brightness.dark ? AppColors.textSecondary : AppColors.lightTextSecondary)),
-                  const SizedBox(height: 4),
-                  Text(
-                    value != null
-                        ? '${value.year}/${value.month}/${value.day} - ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}'
-                        : 'اختر التاريخ والوقت',
-                    style: TextStyle(fontSize: 15, color: value != null
-                        ? (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)
-                        : AppColors.textSecondary),
-                  ),
-                ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Consumer<QrProvider>(
+      builder: (ctx, p, _) {
+        final value = p.formData[fieldKey] as DateTime?;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: InkWell(
+            onTap: () async {
+              final date = await showDatePicker(
+                context: context, initialDate: value ?? DateTime.now(),
+                firstDate: DateTime(2020), lastDate: DateTime(2100),
+              );
+              if (date == null) return;
+              final time = await showTimePicker(
+                context: context, initialTime: value != null ? TimeOfDay.fromDateTime(value) : TimeOfDay.now(),
+              );
+              if (time == null) return;
+              final dt = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+              p.updateField(fieldKey, dt);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkCard : Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: isDark
+                    ? AppColors.textSecondary.withValues(alpha: 0.2) : Colors.grey.shade300),
               ),
+              child: Row(children: [
+                const Icon(Icons.calendar_today, size: 20, color: AppColors.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label, style: TextStyle(fontSize: 12,
+                        color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary)),
+                      const SizedBox(height: 4),
+                      Text(
+                        value != null
+                            ? '${value.year}/${value.month}/${value.day} - ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}'
+                            : 'اختر التاريخ والوقت',
+                        style: TextStyle(fontSize: 15, color: value != null
+                            ? (isDark ? Colors.white : Colors.black87)
+                            : AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
+              ]),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
-          ]),
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
