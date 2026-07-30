@@ -4,12 +4,78 @@ import 'package:provider/provider.dart';
 import '../models/qr_type.dart';
 import '../providers/qr_provider.dart';
 
-class DynamicForm extends StatelessWidget {
+class DynamicForm extends StatefulWidget {
   const DynamicForm({super.key});
 
   @override
+  State<DynamicForm> createState() => _DynamicFormState();
+}
+
+class _DynamicFormState extends State<DynamicForm> {
+  final Map<String, TextEditingController> _controllers = {};
+  QrDataType? _lastType;
+
+  @override
+  void dispose() {
+    for (final c in _controllers.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  void _initControllers(QrProvider provider) {
+    final type = provider.selectedType;
+    if (type == null) return;
+    if (type != _lastType) {
+      _lastType = type;
+      for (final c in _controllers.values) c.dispose();
+      _controllers.clear();
+      final keys = _fieldKeys(type);
+      for (final k in keys) {
+        final val = provider.formData[k] as String? ?? '';
+        _controllers[k] = TextEditingController(text: val);
+      }
+      return;
+    }
+    for (final entry in _controllers.entries) {
+      final val = provider.formData[entry.key];
+      if (val is String && entry.value.text != val) {
+        entry.value.text = val;
+      }
+    }
+  }
+
+  List<String> _fieldKeys(QrDataType type) {
+    switch (type) {
+      case QrDataType.vcard: return ['name', 'phone', 'email', 'company', 'jobTitle', 'website', 'address', 'note'];
+      case QrDataType.wifi: return ['ssid', 'password', 'encryption'];
+      case QrDataType.whatsapp: return ['phone', 'message'];
+      case QrDataType.sms: return ['phone', 'message'];
+      case QrDataType.email: return ['email', 'subject', 'body'];
+      case QrDataType.phone: return ['phone'];
+      case QrDataType.website: return ['url'];
+      case QrDataType.socialMedia: return ['platform', 'username'];
+      case QrDataType.appStore: return ['iosUrl', 'androidUrl'];
+      case QrDataType.googleReviews: return ['placeId', 'directUrl'];
+      case QrDataType.digitalMenu: return ['url'];
+      case QrDataType.geoLocation: return ['latitude', 'longitude'];
+      case QrDataType.calendarEvent: return ['title', 'location', 'description', 'start', 'end'];
+      case QrDataType.paymentLink: return ['type', 'identifier'];
+      case QrDataType.cryptoWallet: return ['currency', 'address', 'amount'];
+      case QrDataType.freeText: return ['text'];
+      case QrDataType.totp: return ['secret', 'account', 'issuer'];
+      case QrDataType.barcode: return ['barcodeType', 'code'];
+    }
+  }
+
+  void _onFieldChanged(String key, String value, QrProvider provider) {
+    provider.updateField(key, value);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final type = context.watch<QrProvider>().selectedType;
+    final provider = context.watch<QrProvider>();
+    final type = provider.selectedType;
     if (type == null) {
       return Center(
         child: Column(
@@ -22,6 +88,7 @@ class DynamicForm extends StatelessWidget {
         ),
       );
     }
+    _initControllers(provider);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -35,14 +102,13 @@ class DynamicForm extends StatelessWidget {
           const SizedBox(height: 8),
           Text(type.subtitle, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
           const SizedBox(height: 20),
-          ..._buildFields(context, type),
+          ..._buildFields(context, type, provider),
         ],
       ),
     );
   }
 
-  List<Widget> _buildFields(BuildContext context, QrDataType type) {
-    final provider = context.read<QrProvider>();
+  List<Widget> _buildFields(BuildContext context, QrDataType type, QrProvider provider) {
     switch (type) {
       case QrDataType.vcard: return _vcardFields(provider);
       case QrDataType.wifi: return _wifiFields(provider);
@@ -78,6 +144,7 @@ class DynamicForm extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextField(
+        controller: _controllers[key],
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
@@ -86,12 +153,12 @@ class DynamicForm extends StatelessWidget {
         keyboardType: keyboardType,
         maxLines: maxLines,
         inputFormatters: inputFormatters,
-        onChanged: (v) => provider.updateField(key, v),
+        onChanged: (v) => _onFieldChanged(key, v, provider),
       ),
     );
   }
 
-  Widget _buildDropdown({
+  Widget _buildDropdownField({
     required String label,
     required String key,
     required QrProvider provider,
@@ -99,14 +166,67 @@ class DynamicForm extends StatelessWidget {
     required String defaultValue,
     Map<String, String>? labels,
   }) {
+    final currentValue = _controllers[key]?.text ?? defaultValue;
+    if (!items.contains(currentValue)) {
+      _controllers[key]?.text = defaultValue;
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: DropdownButtonFormField<String>(
-        value: items.contains(defaultValue) ? defaultValue : items.first,
-        decoration: InputDecoration(labelText: label),
-        items: items.map((item) => DropdownMenuItem(value: item, child: Text(labels?[item] ?? item))).toList(),
-        onChanged: (v) { if (v != null) provider.updateField(key, v); },
+      child: InkWell(
+        onTap: () => _showDropdownMenu(context, label, key, provider, items, labels ?? {}),
+        borderRadius: BorderRadius.circular(12),
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: label,
+            suffixIcon: const Icon(Icons.arrow_drop_down, size: 24),
+          ),
+          child: Text(
+            labels?[currentValue] ?? currentValue,
+            style: TextStyle(fontSize: 16, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87),
+          ),
+        ),
       ),
+    );
+  }
+
+  void _showDropdownMenu(BuildContext context, String label, String key, QrProvider provider, List<String> items, Map<String, String> labels) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(label, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+                ),
+                const SizedBox(height: 12),
+                const Divider(height: 1),
+                ...items.map((item) => ListTile(
+                  leading: Icon(
+                    _controllers[key]?.text == item ? Icons.radio_button_checked : Icons.radio_button_off,
+                    color: _controllers[key]?.text == item ? Theme.of(context).colorScheme.primary : null,
+                  ),
+                  title: Text(labels[item] ?? item, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  onTap: () {
+                    _controllers[key]?.text = item;
+                    provider.updateField(key, item);
+                    Navigator.pop(ctx);
+                  },
+                )),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -124,7 +244,7 @@ class DynamicForm extends StatelessWidget {
   List<Widget> _wifiFields(QrProvider p) => [
     _buildField(label: 'اسم الشبكة (SSID)', key: 'ssid', provider: p, hint: 'اسم شبكة WiFi'),
     _buildField(label: 'كلمة السر', key: 'password', provider: p, hint: 'كلمة مرور الشبكة'),
-    _buildDropdown(label: 'نوع التشفير', key: 'encryption', provider: p, defaultValue: 'WPA', items: ['WPA', 'WEP', 'nopass'], labels: const {'WPA': 'WPA/WPA2', 'WEP': 'WEP', 'nopass': 'بدون كلمة سر'}),
+    _buildDropdownField(label: 'نوع التشفير', key: 'encryption', provider: p, defaultValue: 'WPA', items: ['WPA', 'WEP', 'nopass'], labels: const {'WPA': 'WPA/WPA2', 'WEP': 'WEP', 'nopass': 'بدون كلمة سر'}),
   ];
 
   List<Widget> _whatsappFields(QrProvider p) => [
@@ -152,7 +272,7 @@ class DynamicForm extends StatelessWidget {
   ];
 
   List<Widget> _socialMediaFields(QrProvider p) => [
-    _buildDropdown(label: 'المنصة', key: 'platform', provider: p, defaultValue: 'twitter', items: ['twitter', 'instagram', 'snapchat', 'linkedin', 'telegram', 'youtube', 'tiktok'],
+    _buildDropdownField(label: 'المنصة', key: 'platform', provider: p, defaultValue: 'twitter', items: ['twitter', 'instagram', 'snapchat', 'linkedin', 'telegram', 'youtube', 'tiktok'],
       labels: const {'twitter': 'تويتر/X', 'instagram': 'انستغرام', 'snapchat': 'سناب شات', 'linkedin': 'لينكدإن', 'telegram': 'تيليجرام', 'youtube': 'يوتيوب', 'tiktok': 'تيك توك'},
     ),
     _buildField(label: 'اسم المستخدم أو الرابط', key: 'username', provider: p, hint: '@username'),
@@ -186,13 +306,13 @@ class DynamicForm extends StatelessWidget {
   ];
 
   List<Widget> _paymentFields(QrProvider p) => [
-    _buildDropdown(label: 'نوع الدفع', key: 'type', provider: p, defaultValue: 'paypal', items: ['paypal', 'stcpay', 'mada', 'other'],
+    _buildDropdownField(label: 'نوع الدفع', key: 'type', provider: p, defaultValue: 'paypal', items: ['paypal', 'stcpay', 'mada', 'other'],
       labels: const {'paypal': 'PayPal', 'stcpay': 'STC Pay', 'mada': 'مدى', 'other': 'آخر'}),
     _buildField(label: 'المعرف', key: 'identifier', provider: p, hint: 'البريد أو الرابط'),
   ];
 
   List<Widget> _cryptoFields(QrProvider p) => [
-    _buildDropdown(label: 'العملة', key: 'currency', provider: p, defaultValue: 'bitcoin', items: ['bitcoin', 'ethereum', 'litecoin', 'dogecoin'],
+    _buildDropdownField(label: 'العملة', key: 'currency', provider: p, defaultValue: 'bitcoin', items: ['bitcoin', 'ethereum', 'litecoin', 'dogecoin'],
       labels: const {'bitcoin': 'بيتكوين (BTC)', 'ethereum': 'إيثريوم (ETH)', 'litecoin': 'لايتكوين (LTC)', 'dogecoin': 'دوجكوين (DOGE)'}),
     _buildField(label: 'عنوان المحفظة', key: 'address', provider: p, hint: 'العنوان العام للمحفظة'),
     _buildField(label: 'المبلغ (اختياري)', key: 'amount', provider: p, keyboardType: TextInputType.number),
@@ -209,7 +329,7 @@ class DynamicForm extends StatelessWidget {
   ];
 
   List<Widget> _barcodeFields(QrProvider p) => [
-    _buildDropdown(label: 'نوع الباركود', key: 'barcodeType', provider: p, defaultValue: 'UPC-A', items: ['UPC-A', 'EAN-13']),
+    _buildDropdownField(label: 'نوع الباركود', key: 'barcodeType', provider: p, defaultValue: 'UPC-A', items: ['UPC-A', 'EAN-13']),
     _buildField(label: 'رمز المنتج', key: 'code', provider: p, hint: '12 رقم لـ UPC-A أو 13 لـ EAN-13', keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly]),
   ];

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../app.dart';
 import '../models/qr_type.dart';
 import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
@@ -62,6 +63,14 @@ class HomeScreen extends StatelessWidget {
                 ),
               );
             }),
+            const SizedBox(height: 8),
+            Center(
+              child: Text(
+                'مولّد الباركود الذكي $appVersion',
+                style: TextStyle(fontSize: 11, color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary),
+              ),
+            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),

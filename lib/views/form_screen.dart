@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/qr_type.dart';
 import '../providers/qr_provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/dynamic_form.dart';
 import '../widgets/qr_preview.dart';
@@ -12,7 +13,88 @@ import '../widgets/export_options.dart';
 class FormScreen extends StatelessWidget {
   const FormScreen({super.key});
 
-  Widget _buildPreview(QrProvider provider) {
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.read<QrProvider>();
+    if (provider.selectedType == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => Navigator.pop(context));
+      return const SizedBox.shrink();
+    }
+    return Scaffold(
+      appBar: AppBar(
+        title: Consumer<QrProvider>(
+          builder: (ctx, p, _) => Text(p.selectedType?.title ?? ''),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.home_outlined),
+            tooltip: 'الرئيسية',
+            onPressed: () => Navigator.popUntil(context, (r) => r.isFirst),
+          ),
+          IconButton(
+            icon: Icon(Icons.info_outline),
+            onPressed: () => _showInfo(context),
+          ),
+        ],
+      ),
+      body: Consumer<QrProvider>(
+        builder: (ctx, provider, _) => LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth > 768;
+            if (isWide) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 5, child: SingleChildScrollView(child: const DynamicForm())),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 16, bottom: 16, left: 16),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _buildPreviewSection(context, provider),
+                            const SizedBox(height: 16),
+                            const CustomizationPanel(),
+                            const SizedBox(height: 16),
+                            const ExportOptions(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  const DynamicForm(),
+                  const Divider(height: 1),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: _buildPreviewSection(context, provider),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: CustomizationPanel(),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: ExportOptions(),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreviewSection(BuildContext context, QrProvider provider) {
     if (provider.selectedType == QrDataType.barcode) {
       final code = provider.formData['code'] as String? ?? '';
       final barcodeType = provider.formData['barcodeType'] as String? ?? 'UPC-A';
@@ -33,96 +115,21 @@ class FormScreen extends StatelessWidget {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<QrProvider>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    if (provider.selectedType == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => Navigator.pop(context));
-      return const SizedBox.shrink();
-    }
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(provider.selectedType!.title),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.home_outlined, color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary),
-            tooltip: 'الرئيسية',
-            onPressed: () => Navigator.popUntil(context, (r) => r.isFirst),
-          ),
-          IconButton(
-            icon: Icon(Icons.info_outline, color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary),
-            onPressed: () => _showInfo(context),
-          ),
-        ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 768;
-          if (isWide) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(flex: 5, child: SingleChildScrollView(child: const DynamicForm())),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 16, bottom: 16, left: 16),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          _buildPreview(provider),
-                          const SizedBox(height: 16),
-                          const CustomizationPanel(),
-                          const SizedBox(height: 16),
-                          const ExportOptions(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                const DynamicForm(),
-                const Divider(height: 1),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: _buildPreview(provider),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: CustomizationPanel(),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: ExportOptions(),
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   void _showInfo(BuildContext context) {
     final type = context.read<QrProvider>().selectedType;
     if (type == null) return;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Row(children: [
-          Icon(type!.icon, size: 20),
+          Icon(type.icon, size: 20),
           const SizedBox(width: 8),
-          Text(type.title),
+          Text(type.title, style: TextStyle(color: isDark ? Colors.white : null)),
         ]),
-        content: Text('عند مسح هذا الرمز، سيقوم الهاتف بالإجراء المناسب:\n\n${_actionDescription(type)}'),
+        content: Text('عند مسح هذا الرمز، سيقوم الهاتف بالإجراء المناسب:\n\n${_actionDescription(type)}',
+          style: TextStyle(color: isDark ? Colors.white70 : null),
+        ),
         actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('فهمت'))],
       ),
     );
