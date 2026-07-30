@@ -24,10 +24,47 @@
       display: flex; align-items: center; justify-content: center;
       height: 100vh; font-family: sans-serif; color: #6C63FF;
     }
+    #error {
+      display: none; align-items: center; justify-content: center;
+      height: 100vh; font-family: sans-serif; color: #FF6B6B;
+      padding: 20px; text-align: center; flex-direction: column;
+    }
+    #error.show { display: flex; }
+    #loading.hidden { display: none; }
   </style>
+  <script>
+    // Show error if Flutter fails to load within 15 seconds
+    setTimeout(function() {
+      var loading = document.getElementById('loading');
+      var error = document.getElementById('error');
+      if (loading && !loading.classList.contains('hidden')) {
+        loading.classList.add('hidden');
+        error.classList.add('show');
+      }
+    }, 15000);
+  </script>
 </head>
 <body>
   <div id="loading">جاري التحميل...</div>
-  <script src="flutter_bootstrap.js" async></script>
+  <div id="error">
+    <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
+    <div style="font-size:18px;font-weight:bold;">عذراً، حدث خطأ في تحميل التطبيق</div>
+    <div style="font-size:14px;margin-top:8px;color:#999;">
+      يرجى تحديث الصفحة أو المحاولة لاحقاً<br>
+      <span id="errorDetail" style="font-size:12px;"></span>
+    </div>
+    <button onclick="location.reload()" style="margin-top:16px;padding:10px 24px;background:#6C63FF;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer;">
+      تحديث الصفحة
+    </button>
+  </div>
+  <script>
+    window.addEventListener('error', function(e) {
+      document.getElementById('errorDetail').textContent = e.message || 'خطأ غير معروف';
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      document.getElementById('errorDetail').textContent = e.reason && e.reason.message ? e.reason.message : 'Promise rejected';
+    });
+  </script>
+  <script src="flutter_bootstrap.js?v=2" async></script>
 </body>
 </html>
