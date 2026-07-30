@@ -99,12 +99,62 @@ class QrExport {
   }
 
   static void _triggerDownload(html.CanvasElement canvas, String filename) {
-    _addWatermark(canvas.context2D, canvas.width ?? canvas.height ?? 300);
+    final ctx = canvas.context2D;
+    final canvasSize = canvas.width ?? canvas.height ?? 300;
+    _addWatermark(ctx, canvasSize);
     final dataUrl = canvas.toDataUrl('image/png');
     final anchor = html.AnchorElement()
       ..href = dataUrl
       ..download = '$filename.png'
       ..click();
+  }
+
+  static void downloadWithWatermark({
+    required String data,
+    required Color qrColor,
+    required Color backgroundColor,
+    required int size,
+    String? logoBase64,
+  }) {
+    final ecLevel = logoBase64 != null ? QrErrorCorrectLevel.H : QrErrorCorrectLevel.M;
+    final qrCode = QrCode.fromData(data: data, errorCorrectLevel: ecLevel);
+    final qrImage = QrImage(qrCode);
+    final moduleCount = qrImage.moduleCount;
+    final cellSize = (size / (moduleCount + 4)).floor();
+    final padding = cellSize * 2;
+    final canvasSize = moduleCount * cellSize + 2 * padding;
+
+    final canvas = html.CanvasElement();
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
+    final ctx = canvas.context2D;
+
+    ctx.fillStyle = _colorToCss(backgroundColor);
+    ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+    ctx.fillStyle = _colorToCss(qrColor);
+    for (int y = 0; y < moduleCount; y++) {
+      for (int x = 0; x < moduleCount; x++) {
+        if (qrImage.isDark(y, x)) {
+          ctx.fillRect(padding + x * cellSize, padding + y * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+
+    if (logoBase64 != null) {
+      final logoImg = html.ImageElement();
+      logoImg.src = logoBase64;
+      final logoSize = canvasSize ~/ 4;
+      final logoX = (canvasSize - logoSize) ~/ 2;
+      final logoY = (canvasSize - logoSize) ~/ 2;
+      logoImg.onLoad.first.then((_) {
+        ctx.drawImageScaled(logoImg, logoX, logoY, logoSize, logoSize);
+        _triggerDownload(canvas, 'qr_code');
+      });
+      return;
+    }
+
+    _triggerDownload(canvas, 'qr_code');
   }
 
   static String _colorToCss(Color c) => 'rgba(${c.r}, ${c.g}, ${c.b}, ${c.opacity})';

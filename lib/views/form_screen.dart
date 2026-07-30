@@ -9,6 +9,7 @@ import '../widgets/qr_preview.dart';
 import '../widgets/barcode_preview.dart';
 import '../widgets/customization_panel.dart';
 import '../widgets/export_options.dart';
+import '../services/qr_export.dart';
 
 class FormScreen extends StatefulWidget {
   const FormScreen({super.key});
@@ -20,11 +21,20 @@ class FormScreen extends StatefulWidget {
 class _FormScreenState extends State<FormScreen> {
   final Map<String, TextEditingController> _controllers = {};
   QrDataType? _currentType;
+  bool _initialized = false;
 
   @override
   void initState() {
     super.initState();
-    _initControllers();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _initControllers());
+    }
   }
 
   @override
@@ -36,6 +46,7 @@ class _FormScreenState extends State<FormScreen> {
   }
 
   void _initControllers() {
+    if (!mounted) return;
     final provider = context.read<QrProvider>();
     final type = provider.selectedType;
     if (type == null) return;
@@ -48,6 +59,7 @@ class _FormScreenState extends State<FormScreen> {
       final val = provider.formData[k] as String? ?? '';
       _controllers[k] = TextEditingController(text: val);
     }
+    setState(() {});
   }
 
   List<String> _fieldKeys(QrDataType type) {
@@ -84,7 +96,7 @@ class _FormScreenState extends State<FormScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) => Navigator.pop(context));
       return const SizedBox.shrink();
     }
-    if (provider.selectedType != _currentType) {
+    if (provider.selectedType != _currentType && _initialized) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _initControllers());
     }
     return Scaffold(
@@ -170,7 +182,26 @@ class _FormScreenState extends State<FormScreen> {
 
   Widget _buildCompactPreview(QrProvider provider) {
     if (provider.generatedData.isEmpty) {
-      return const SizedBox.shrink();
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkCard : const Color(0xFFF0F4FF),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.15)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.qr_code_2, size: 32, color: AppColors.primary.withValues(alpha: 0.4)),
+            const SizedBox(height: 8),
+            Text('أدخل البيانات لمعاينة الباركود',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          ],
+        ),
+      );
     }
     if (provider.selectedType == QrDataType.barcode) {
       final code = provider.formData['code'] as String? ?? '';
@@ -185,53 +216,61 @@ class _FormScreenState extends State<FormScreen> {
 
   Widget _buildFormBody(QrProvider provider) {
     final type = provider.selectedType!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? AppColors.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.textSecondary.withValues(alpha: 0.15) : Colors.grey.withValues(alpha: 0.2)),
+        border: Border.all(color: isDark
+            ? AppColors.primary.withValues(alpha: 0.3) : AppColors.primary.withValues(alpha: 0.25)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: isDark ? 0.08 : 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.primary.withValues(alpha: 0.1), AppColors.primary.withValues(alpha: 0.02)],
+                colors: [AppColors.primary.withValues(alpha: 0.15), AppColors.primary.withValues(alpha: 0.04)],
               ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
             ),
             child: Row(children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(type.icon, size: 20, color: AppColors.primary),
+                child: Icon(type.icon, size: 22, color: AppColors.primary),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(type.title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
-                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.lightTextPrimary)),
-                    const SizedBox(height: 1),
-                    Text(type.subtitle, style: TextStyle(fontSize: 11,
-                      color: Theme.of(context).brightness == Brightness.dark ? AppColors.textSecondary : AppColors.lightTextSecondary)),
+                    Text(type.title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : AppColors.lightTextPrimary)),
+                    const SizedBox(height: 2),
+                    Text(type.subtitle, style: TextStyle(fontSize: 12,
+                      color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary)),
                   ],
                 ),
               ),
             ]),
           ),
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             child: Column(children: _buildFields(type, provider)),
           ),
         ],
@@ -267,20 +306,41 @@ class _FormScreenState extends State<FormScreen> {
     String? hint, TextInputType? keyboardType, int maxLines = 1,
     Widget? prefix, List<TextInputFormatter>? inputFormatters,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final controller = _controllers[key] ?? TextEditingController();
+    if (_controllers[key] == null) {
+      _controllers[key] = controller;
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: TextField(
-        controller: _controllers[key],
+        controller: controller,
         decoration: InputDecoration(
           labelText: label, hintText: hint, prefixIcon: prefix,
-          isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          filled: true,
+          fillColor: isDark ? const Color(0xFF1A1A2E) : const Color(0xFFF8F9FF),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: isDark ? AppColors.textSecondary.withValues(alpha: 0.25) : AppColors.primary.withValues(alpha: 0.2)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: isDark ? AppColors.textSecondary.withValues(alpha: 0.15) : Colors.grey.shade200),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          ),
+          labelStyle: TextStyle(fontSize: 13,
+            color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary),
         ),
         keyboardType: keyboardType, maxLines: maxLines,
         inputFormatters: inputFormatters,
         onChanged: (v) => _updateField(key, v),
         style: TextStyle(fontSize: 14,
-          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87),
+          color: isDark ? Colors.white : Colors.black87),
       ),
     );
   }
@@ -290,9 +350,11 @@ class _FormScreenState extends State<FormScreen> {
     required List<String> items, required String defaultValue,
     Map<String, String>? labels,
   }) {
-    final currentValue = (_controllers[key]?.text.isNotEmpty == true) ? _controllers[key]!.text : defaultValue;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final controller = _controllers.putIfAbsent(key, () => TextEditingController());
+    final currentValue = controller.text.isNotEmpty ? controller.text : defaultValue;
     if (!items.contains(currentValue)) {
-      _controllers[key]?.text = defaultValue;
+      controller.text = defaultValue;
     }
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -300,27 +362,27 @@ class _FormScreenState extends State<FormScreen> {
         onTap: () => _showDropdownPicker(context, label, key, provider, items, labels ?? {}),
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : Colors.grey.shade50,
+            color: isDark ? const Color(0xFF1A1A2E) : const Color(0xFFF8F9FF),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.textSecondary.withValues(alpha: 0.2) : Colors.grey.shade300),
+            border: Border.all(color: isDark
+                ? AppColors.textSecondary.withValues(alpha: 0.2) : AppColors.primary.withValues(alpha: 0.2)),
           ),
           child: Row(children: [
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: TextStyle(fontSize: 11,
-                    color: Theme.of(context).brightness == Brightness.dark ? AppColors.textSecondary : AppColors.lightTextSecondary)),
-                  const SizedBox(height: 2),
+                  Text(label, style: TextStyle(fontSize: 12,
+                    color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary)),
+                  const SizedBox(height: 3),
                   Text(labels?[currentValue] ?? currentValue, style: TextStyle(fontSize: 14,
-                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
+                    color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w500)),
                 ],
               ),
             ),
-            Icon(Icons.arrow_drop_down, color: AppColors.primary),
+            Icon(Icons.arrow_drop_down_circle_outlined, size: 20, color: AppColors.primary),
           ]),
         ),
       ),
@@ -332,30 +394,80 @@ class _FormScreenState extends State<FormScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(label),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView(
-            shrinkWrap: true,
-            children: items.map((item) {
-              final selected = _controllers[key]?.text == item;
-              return ListTile(
-                leading: Icon(selected ? Icons.radio_button_checked : Icons.radio_button_off,
-                  color: selected ? AppColors.primary : null),
-                title: Text(labels[item] ?? item,
-                  style: TextStyle(color: isDark && !selected ? Colors.white70 : null,
-                    fontWeight: selected ? FontWeight.bold : FontWeight.normal)),
-                onTap: () {
-                  _controllers[key]?.text = item;
-                  provider.updateField(key, item);
-                  Navigator.pop(ctx);
-                },
-              );
-            }).toList(),
-          ),
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary.withValues(alpha: 0.15), AppColors.primary.withValues(alpha: 0.04)],
+                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : AppColors.lightTextPrimary)),
+            ),
+            SizedBox(
+              width: double.maxFinite,
+              child: ListView(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                children: items.map((item) {
+                  final selected = _controllers[key]?.text == item;
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: selected ? AppColors.primary.withValues(alpha: 0.1) : null,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: selected ? AppColors.primary : Colors.grey.shade400, width: 2),
+                        ),
+                        child: selected
+                            ? const Icon(Icons.check, size: 14, color: AppColors.primary)
+                            : null,
+                      ),
+                      title: Text(labels[item] ?? item,
+                        style: TextStyle(
+                          color: selected ? AppColors.primary : (isDark ? Colors.white : Colors.black87),
+                          fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 15,
+                        )),
+                      onTap: () {
+                        final ctrl = _controllers.putIfAbsent(key, () => TextEditingController());
+                        ctrl.text = item;
+                        provider.updateField(key, item);
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: AppColors.primary.withValues(alpha: 0.5)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('إلغاء', style: TextStyle(color: AppColors.primary)),
+                ),
+              ),
+            ),
+          ],
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء'))],
       ),
     );
   }
@@ -488,23 +600,35 @@ class _FormScreenState extends State<FormScreen> {
 
   Widget _saveButton(QrProvider p) {
     final hasData = p.generatedData.isNotEmpty;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.only(top: 4),
       child: SizedBox(
         width: double.infinity,
-        height: 48,
+        height: 44,
         child: ElevatedButton.icon(
           onPressed: hasData ? () {
+            QrExport.downloadWithWatermark(
+              data: p.generatedData,
+              qrColor: p.qrColor,
+              backgroundColor: p.backgroundColor,
+              size: p.size.toInt(),
+              logoBase64: p.showLogo ? p.logoBase64 : null,
+            );
             p.saveToHistory();
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✓ تم الحفظ في السجل'), backgroundColor: AppColors.success));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('✓ تم التحميل والحفظ'), backgroundColor: AppColors.success),
+            );
           } : null,
-          icon: const Icon(Icons.download, size: 20),
+          icon: Icon(hasData ? Icons.download : Icons.edit_note, size: 18),
           label: Text(hasData ? 'تحميل الباركود' : 'أدخل البيانات أولاً',
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
           style: ElevatedButton.styleFrom(
-            backgroundColor: hasData ? AppColors.secondary : Colors.grey.shade400,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            backgroundColor: hasData ? AppColors.secondary : (isDark ? AppColors.darkCard : Colors.grey.shade300),
+            foregroundColor: hasData ? Colors.white : (isDark ? AppColors.textSecondary : Colors.grey.shade600),
+            disabledBackgroundColor: isDark ? AppColors.darkCard : Colors.grey.shade300,
+            disabledForegroundColor: isDark ? AppColors.textSecondary : Colors.grey.shade600,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),
       ),
@@ -581,15 +705,22 @@ class _DateTimeField extends StatelessWidget {
               p.updateField(fieldKey, dt);
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkCard : Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(12),
+                color: isDark ? const Color(0xFF1A1A2E) : const Color(0xFFF8F9FF),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: isDark
-                    ? AppColors.textSecondary.withValues(alpha: 0.2) : Colors.grey.shade300),
+                    ? AppColors.textSecondary.withValues(alpha: 0.2) : AppColors.primary.withValues(alpha: 0.2)),
               ),
               child: Row(children: [
-                const Icon(Icons.calendar_today, size: 20, color: AppColors.primary),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.calendar_today, size: 16, color: AppColors.primary),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -597,19 +728,19 @@ class _DateTimeField extends StatelessWidget {
                     children: [
                       Text(label, style: TextStyle(fontSize: 12,
                         color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary)),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Text(
                         value != null
-                            ? '${value.year}/${value.month}/${value.day} - ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}'
+                            ? '${value.year}/${value.month.toString().padLeft(2, '0')}/${value.day.toString().padLeft(2, '0')} - ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}'
                             : 'اختر التاريخ والوقت',
-                        style: TextStyle(fontSize: 15, color: value != null
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: value != null
                             ? (isDark ? Colors.white : Colors.black87)
                             : AppColors.textSecondary),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
+                const Icon(Icons.arrow_drop_down, size: 24, color: AppColors.primary),
               ]),
             ),
           ),
