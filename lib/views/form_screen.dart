@@ -138,19 +138,19 @@ class _FormScreenState extends State<FormScreen> {
   Widget _buildNarrowLayout(QrProvider provider) {
     return SingleChildScrollView(
       child: Column(children: [
+        _buildFormBody(provider),
+        const SizedBox(height: 16),
         Consumer<QrProvider>(
-          builder: (ctx, p, _) => Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Column(children: [
-              _buildPreview(p),
+          builder: (ctx, p, _) => Column(children: [
+            _buildCompactPreview(p),
+            if (p.generatedData.isNotEmpty) ...[
               const SizedBox(height: 8),
               const CustomizationPanel(),
               const SizedBox(height: 8),
               const ExportOptions(),
-            ]),
-          ),
+            ],
+          ]),
         ),
-        _buildFormBody(provider),
         const SizedBox(height: 24),
       ]),
     );
@@ -168,14 +168,29 @@ class _FormScreenState extends State<FormScreen> {
     );
   }
 
+  Widget _buildCompactPreview(QrProvider provider) {
+    if (provider.generatedData.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    if (provider.selectedType == QrDataType.barcode) {
+      final code = provider.formData['code'] as String? ?? '';
+      final barcodeType = provider.formData['barcodeType'] as String? ?? 'UPC-A';
+      return BarcodePreviewWidget(code: code, type: barcodeType, barColor: provider.qrColor, backgroundColor: provider.backgroundColor);
+    }
+    return QrPreviewWidget(
+      data: provider.generatedData, qrColor: provider.qrColor, backgroundColor: provider.backgroundColor,
+      size: provider.size, showLogo: provider.showLogo, logoBase64: provider.logoBase64,
+    );
+  }
+
   Widget _buildFormBody(QrProvider provider) {
     final type = provider.selectedType!;
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Theme.of(context).brightness == Brightness.dark
             ? AppColors.textSecondary.withValues(alpha: 0.15) : Colors.grey.withValues(alpha: 0.2)),
       ),
@@ -184,31 +199,31 @@ class _FormScreenState extends State<FormScreen> {
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [AppColors.primary.withValues(alpha: 0.1), AppColors.primary.withValues(alpha: 0.02)],
               ),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
             ),
             child: Row(children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(type.icon, size: 22, color: AppColors.primary),
+                child: Icon(type.icon, size: 20, color: AppColors.primary),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(type.title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold,
+                    Text(type.title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
                       color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.lightTextPrimary)),
-                    const SizedBox(height: 2),
-                    Text(type.subtitle, style: TextStyle(fontSize: 12,
+                    const SizedBox(height: 1),
+                    Text(type.subtitle, style: TextStyle(fontSize: 11,
                       color: Theme.of(context).brightness == Brightness.dark ? AppColors.textSecondary : AppColors.lightTextSecondary)),
                   ],
                 ),
@@ -216,7 +231,7 @@ class _FormScreenState extends State<FormScreen> {
             ]),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Column(children: _buildFields(type, provider)),
           ),
         ],
@@ -253,17 +268,18 @@ class _FormScreenState extends State<FormScreen> {
     Widget? prefix, List<TextInputFormatter>? inputFormatters,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 10),
       child: TextField(
         controller: _controllers[key],
         decoration: InputDecoration(
           labelText: label, hintText: hint, prefixIcon: prefix,
-          filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          filled: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
         keyboardType: keyboardType, maxLines: maxLines,
         inputFormatters: inputFormatters,
         onChanged: (v) => _updateField(key, v),
-        style: TextStyle(fontSize: 15,
+        style: TextStyle(fontSize: 14,
           color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87),
       ),
     );
@@ -279,15 +295,15 @@ class _FormScreenState extends State<FormScreen> {
       _controllers[key]?.text = defaultValue;
     }
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         onTap: () => _showDropdownPicker(context, label, key, provider, items, labels ?? {}),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
             color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Theme.of(context).brightness == Brightness.dark
                 ? AppColors.textSecondary.withValues(alpha: 0.2) : Colors.grey.shade300),
           ),
@@ -296,10 +312,10 @@ class _FormScreenState extends State<FormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: TextStyle(fontSize: 12,
+                  Text(label, style: TextStyle(fontSize: 11,
                     color: Theme.of(context).brightness == Brightness.dark ? AppColors.textSecondary : AppColors.lightTextSecondary)),
-                  const SizedBox(height: 4),
-                  Text(labels?[currentValue] ?? currentValue, style: TextStyle(fontSize: 15,
+                  const SizedBox(height: 2),
+                  Text(labels?[currentValue] ?? currentValue, style: TextStyle(fontSize: 14,
                     color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
                 ],
               ),

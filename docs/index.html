@@ -33,7 +33,6 @@
     #loading.hidden { display: none; }
   </style>
   <script>
-    // Show error if Flutter fails to load within 15 seconds
     setTimeout(function() {
       var loading = document.getElementById('loading');
       var error = document.getElementById('error');
@@ -65,6 +64,6 @@
       document.getElementById('errorDetail').textContent = e.reason && e.reason.message ? e.reason.message : 'Promise rejected';
     });
   </script>
-  <script src="flutter_bootstrap.js?v=2" async></script>
+  <script src="flutter_bootstrap.js?v=3" async></script>
 </body>
 </html>
