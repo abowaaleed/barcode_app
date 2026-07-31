@@ -307,10 +307,10 @@ class _FormScreenState extends State<FormScreen> {
     Widget? prefix, List<TextInputFormatter>? inputFormatters,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final controller = _controllers[key] ?? TextEditingController();
-    if (_controllers[key] == null) {
-      _controllers[key] = controller;
-    }
+    final controller = _controllers.putIfAbsent(key, () {
+      final val = provider.formData[key] as String? ?? '';
+      return TextEditingController(text: val);
+    });
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: TextField(

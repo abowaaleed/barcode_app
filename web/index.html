@@ -6,6 +6,11 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="مولّد الباركود الذكي - إنشاء رموز QR احترافية">
 
+  <!-- Cache busting -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -16,18 +21,115 @@
   <link rel="icon" type="image/png" href="favicon.png"/>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
 
-  <title>مولّد الباركود الذكي</title>
+  <title>مولّد الباركود الذكي v1.3.1</title>
   <link rel="manifest" href="manifest.json">
   <style>
-    body { margin: 0; padding: 0; }
+    body { margin: 0; padding: 0; background: #f5f7fa; }
     #loading {
-      display: flex; align-items: center; justify-content: center;
-      height: 100vh; font-family: sans-serif; color: #6C63FF;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100vh; font-family: 'Cairo', sans-serif; color: #6C63FF;
+    }
+    #loading .spinner {
+      width: 48px; height: 48px; margin-bottom: 16px;
+      border: 4px solid #e0e3ff; border-top-color: #6C63FF;
+      border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading .app-name { font-size: 18px; font-weight: 700; color: #2D3142; }
+
+    #error-container {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: #f8f9ff; z-index: 9999;
+      flex-direction: column; align-items: center; justify-content: center;
+      padding: 20px; text-align: center; direction: rtl; font-family: 'Cairo', sans-serif;
+    }
+    #error-container h2 { color: #EF5350; margin-bottom: 8px; }
+    #error-container p { color: #666; font-size: 14px; margin-bottom: 16px; }
+    #error-container button {
+      background: #6C63FF; color: white; border: none;
+      padding: 12px 28px; border-radius: 10px; cursor: pointer;
+      font-size: 15px; font-family: inherit;
+    }
+    #error-detail {
+      font-size: 11px; color: #999; margin-top: 16px; max-width: 600px;
+      word-break: break-word; white-space: pre-wrap;
+      background: #eee; padding: 10px; border-radius: 4px;
+      display: none;
     }
   </style>
 </head>
 <body>
-  <div id="loading">جاري التحميل...</div>
+  <div id="loading">
+    <div class="spinner"></div>
+    <div class="app-name">مولّد الباركود الذكي</div>
+    <div id="loading-status" style="font-size:12px;color:#9C9EB9;margin-top:4px;">v1.3.1 - جاري التحميل...</div>
+  </div>
+
+  <div id="error-container">
+    <div style="font-size:48px;margin-bottom:8px;">⚠️</div>
+    <h2>عذراً، حدث خطأ في تحميل التطبيق</h2>
+    <p>يرجى تحديث الصفحة أو المحاولة من متصفح آخر</p>
+    <button onclick="location.reload()">تحديث الصفحة</button>
+    <div id="error-detail"></div>
+  </div>
+
+  <script>
+    function hideLoading() {
+      var loader = document.getElementById('loading');
+      if (loader) loader.style.display = 'none';
+      var error = document.getElementById('error-container');
+      if (error) error.style.display = 'none';
+      console.log('Loading screen hidden');
+    }
+
+    // Layer 1: MutationObserver to detect Flutter view
+    // This handles the case where the app starts rendering but JS doesn't call hideLoading
+    var observer = new MutationObserver(function(mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        for (var j = 0; j < mutations[i].addedNodes.length; j++) {
+          var node = mutations[i].addedNodes[j];
+          if (node.tagName === 'FLUTTER-VIEW' || node.nodeName === 'FLUTTER-VIEW') {
+            hideLoading();
+            observer.disconnect();
+          }
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Layer 2: Global error handler
+    window.addEventListener('error', function(e) {
+      console.error('Global error caught:', e);
+      var err = document.getElementById('error-container');
+      if (err) {
+        err.style.display = 'flex';
+        var detail = document.getElementById('error-detail');
+        if (detail) {
+          detail.style.display = 'block';
+          detail.textContent = 'Error: ' + (e.message || e.error || 'Unknown') +
+                               '\nAt: ' + (e.filename || 'unknown') + ':' + (e.lineno || '?') +
+                               '\nStack: ' + (e.error && e.error.stack ? e.error.stack : 'N/A');
+        }
+      }
+    });
+
+    // Timeout fallback (60 seconds)
+    setTimeout(function() {
+      var loader = document.getElementById('loading');
+      if (loader && loader.style.display !== 'none') {
+        var err = document.getElementById('error-container');
+        if (err) {
+          err.style.display = 'flex';
+          var detail = document.getElementById('error-detail');
+          if (detail) {
+            detail.style.display = 'block';
+            detail.textContent = 'انتهت مهلة التحميل. تأكد من جودة الاتصال بالإنترنت.';
+          }
+        }
+      }
+    }, 60000);
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

@@ -66,7 +66,7 @@ class _BarcodePainter extends CustomPainter {
     final svg = bc.toSvg(code, width: size.width, height: size.height);
     final paint = Paint()..color = barColor;
     // Parse SVG rect elements and draw them
-    final reg = RegExp(r'<rect[^>]*x="(\d+)"[^>]*width="(\d+)"[^>]*height="(\d+)"[^>]*/>');
+    final reg = RegExp(r'<rect[^>]*x="([\d\.]+)"[^>]*width="([\d\.]+)"[^>]*height="([\d\.]+)"[^>]*/>');
     final matches = reg.allMatches(svg);
     for (final m in matches) {
       final x = double.parse(m.group(1)!);
@@ -88,7 +88,7 @@ void downloadBarcodePng(String code, String type, Color barColor, Color bgColor)
   ctx.fillStyle = _colorToCss(bgColor);
   ctx.fillRect(0, 0, 400, 150);
   ctx.fillStyle = _colorToCss(barColor);
-  final reg = RegExp(r'<rect[^>]*x="(\d+)"[^>]*width="(\d+)"[^>]*height="(\d+)"[^>]*/>');
+  final reg = RegExp(r'<rect[^>]*x="([\d\.]+)"[^>]*width="([\d\.]+)"[^>]*height="([\d\.]+)"[^>]*/>');
   final matches = reg.allMatches(svg);
   for (final m in matches) {
     final x = double.parse(m.group(1)!);
@@ -103,4 +103,4 @@ void downloadBarcodePng(String code, String type, Color barColor, Color bgColor)
     ..click();
 }
 
-String _colorToCss(Color c) => 'rgba(${c.r}, ${c.g}, ${c.b}, ${c.opacity})';
+String _colorToCss(Color c) => 'rgba(${c.red}, ${c.green}, ${c.blue}, ${c.opacity})';

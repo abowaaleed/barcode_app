@@ -33,22 +33,33 @@ addEventListener("message", eventListener);
 if (!window._flutter) {
   window._flutter = {};
 }
-_flutter.buildConfig = {"engineRevision":"83675ed27633283e7fc296c8bca22e841224c096","builds":[{"compileTarget":"dart2js","renderer":"canvaskit","mainJsPath":"main.dart.js?v=1.3.0"},{}]};
+_flutter.buildConfig = {"engineRevision":"83675ed27633283e7fc296c8bca22e841224c096","builds":[{"compileTarget":"dart2js","renderer":"canvaskit","mainJsPath":"main.dart.js"},{}]};
+
 
 _flutter.loader.load({
   onEntrypointLoaded: async function(engineInitializer) {
     try {
-      let appRunner = await engineInitializer.initializeEngine();
-      var el = document.getElementById('loading');
-      if (el) el.style.display = 'none';
-      var err = document.getElementById('error-container');
-      if (err) err.style.display = 'none';
-      appRunner.runApp();
-    } catch(e) {
+      const appRunner = await engineInitializer.initializeEngine();
+
+      // Hide loading screen before running the app
+      if (typeof hideLoading === 'function') {
+        hideLoading();
+      } else {
+        var el = document.getElementById('loading');
+        if (el) el.style.display = 'none';
+      }
+
+      await appRunner.runApp();
+    } catch (e) {
+      console.error('Engine initialization failed:', e);
       var err = document.getElementById('error-container');
       if (err) {
         err.style.display = 'flex';
-        err.querySelector('#error-detail').textContent = 'Engine init: ' + (e && e.message ? e.message : String(e));
+        var detail = document.getElementById('error-detail');
+        if (detail) {
+          detail.style.display = 'block';
+          detail.textContent = 'Engine Error: ' + (e.message || String(e));
+        }
       }
     }
   }

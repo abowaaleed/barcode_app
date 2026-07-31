@@ -157,12 +157,12 @@ class QrExport {
     _triggerDownload(canvas, 'qr_code');
   }
 
-  static String _colorToCss(Color c) => 'rgba(${c.r}, ${c.g}, ${c.b}, ${c.opacity})';
+  static String _colorToCss(Color c) => 'rgba(${c.red}, ${c.green}, ${c.blue}, ${c.opacity})';
 
   static String _colorToHex(Color c) {
-    final r = (c.r * 255).round().toRadixString(16).padLeft(2, '0');
-    final g = (c.g * 255).round().toRadixString(16).padLeft(2, '0');
-    final b = (c.b * 255).round().toRadixString(16).padLeft(2, '0');
+    final r = c.red.toRadixString(16).padLeft(2, '0');
+    final g = c.green.toRadixString(16).padLeft(2, '0');
+    final b = c.blue.toRadixString(16).padLeft(2, '0');
     return '#$r$g$b';
   }
 }
