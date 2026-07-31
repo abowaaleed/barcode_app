@@ -26,9 +26,17 @@
   <style>
     body { margin: 0; padding: 0; }
     #loading {
-      display: flex; align-items: center; justify-content: center;
-      height: 100vh; font-family: sans-serif; color: #6C63FF;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100vh; font-family: 'Cairo', sans-serif; color: #6C63FF;
+      background: #f5f7fa;
     }
+    #loading .spinner {
+      width: 48px; height: 48px; margin-bottom: 16px;
+      border: 4px solid #e0e3ff; border-top-color: #6C63FF;
+      border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading .app-name { font-size: 18px; font-weight: 700; color: #2D3142; }
     #error-container {
       display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: #f8f9ff; z-index: 9999;
@@ -46,7 +54,11 @@
   </style>
 </head>
 <body>
-  <div id="loading">جاري التحميل...</div>
+  <div id="loading">
+    <div class="spinner"></div>
+    <div class="app-name">مولّد الباركود الذكي</div>
+    <div style="font-size:12px;color:#9C9EB9;margin-top:4px;">v1.3.0</div>
+  </div>
   <div id="error-container">
     <div style="font-size:48px;margin-bottom:8px;">⚠️</div>
     <h2>عذراً، حدث خطأ في تحميل التطبيق</h2>
