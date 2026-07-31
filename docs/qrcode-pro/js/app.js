@@ -4,6 +4,11 @@
 
   var $ = function (id) { return document.getElementById(id); };
 
+  // ---------- ترميز UTF-8 (مهم للنص العربي) ----------
+  if (typeof qrcode !== 'undefined' && qrcode.stringToBytesFuncs && qrcode.stringToBytesFuncs['UTF-8']) {
+    qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+  }
+
   // ---------- الحالة ----------
   var state = {
     type: 'text',
@@ -15,15 +20,6 @@
 
   // ---------- التبويبات ----------
   var tabs = document.querySelectorAll('.tab');
-  var groupFields = {
-    text: ['text'],
-    url: ['url'],
-    phone: ['phone'],
-    sms: ['sms'],
-    whatsapp: ['whatsapp'],
-    email: ['email'],
-    wifi: ['wifi']
-  };
 
   function setActiveTab(type) {
     state.type = type;
@@ -32,17 +28,17 @@
       t.classList.toggle('active', isActive);
       t.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });
-    // أظهر حقول النوع المحدد فقط
-    Object.keys(groupFields).forEach(function (key) {
-      document.querySelectorAll('[data-fieldgroup]').forEach(function (el) {
-        el.classList.toggle('hidden', el.dataset.fieldgroup !== key);
-      });
+    // أظهر حقول النوع المحدد فقط وأخفِ بقية المجموعات
+    document.querySelectorAll('[data-fieldgroup]').forEach(function (el) {
+      el.classList.toggle('hidden', el.dataset.fieldgroup !== type);
     });
   }
 
   tabs.forEach(function (tab) {
     tab.addEventListener('click', function () { setActiveTab(tab.dataset.type); });
   });
+
+  setActiveTab('text');
 
   // ---------- عداد النص ----------
   var fText = $('f-text');
@@ -193,6 +189,16 @@
     return '';
   }
 
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
   // ---------- الرسم على Canvas ----------
   function drawQr(canvas, qrData, size, fg, bg, logoImg, logoPct) {
     var qr = qrcode(0, 'H');
@@ -208,7 +214,7 @@
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, size, size);
 
-    var quiet = Math.floor(cells * 0.06); // منطقة هادئة
+    var quiet = Math.floor(cells * 0.08); // منطقة هادئة أوسع
     var total = cells + quiet * 2;
     var scale = size / total;
     var offset = quiet * scale;
@@ -222,16 +228,18 @@
       }
     }
 
-    // الشعار في المنتصف
+    // الشعار في المنتصف مع خلفية بيضاء مستديرة وحدود إخفاء
     if (logoImg) {
-      var pct = logoPct / 100;
+      var pct = Math.min(logoPct, 30) / 100;
       var logoSize = size * pct;
       var x = (size - logoSize) / 2;
       var y = (size - logoSize) / 2;
-      // خلفية بيضاء للشعار لضمان المسح
-      var pad = logoSize * 0.08;
+      var pad = logoSize * 0.14;
+      // مسح كبير باللون الأبيض حول الشعار لضمان قراءة الرمز
+      var erase = pad * 2;
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(x - pad, y - pad, logoSize + pad * 2, logoSize + pad * 2);
+      roundRect(ctx, x - erase, y - erase, logoSize + erase * 2, logoSize + erase * 2, erase);
+      ctx.fill();
       ctx.drawImage(logoImg, x, y, logoSize, logoSize);
     }
   }
