@@ -45149,7 +45149,7 @@ q=A.br("\u0645\u0631\u062d\u0628\u0627\u064b \u0628\u0643",s,s,s,A.co(s,s,r?B.k:
 q=A.b([q,B.Bp,A.br("\u0627\u062e\u062a\u0631 \u0646\u0648\u0639 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u062a\u064a \u062a\u0631\u064a\u062f \u062a\u062d\u0648\u064a\u0644\u0647\u0627 \u0625\u0644\u0649 \u0631\u0645\u0632",s,s,s,A.co(s,s,r?B.ae:B.aL,s,s,s,s,s,s,s,s,14,s,s,s,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),B.Bm],o)
 B.b.S(q,A.aA6(5,new A.a8G(a),!0,t.l7))
 q.push(B.dr)
-q.push(A.fw(A.br("\u0645\u0648\u0644\u0651\u062f \u0627\u0644\u0628\u0627\u0631\u0643\u0648\u062f \u0627\u0644\u0630\u0643\u064a v1.3.1",s,s,s,A.co(s,s,r?B.ae:B.aL,s,s,s,s,s,s,s,s,11,s,s,s,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),s,s))
+q.push(A.fw(A.br("\u0645\u0648\u0644\u0651\u062f \u0627\u0644\u0628\u0627\u0631\u0643\u0648\u062f \u0627\u0644\u0630\u0643\u064a v1.3.2",s,s,s,A.co(s,s,r?B.ae:B.aL,s,s,s,s,s,s,s,s,11,s,s,s,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),s,s))
 q.push(B.dq)
 return A.agA(p,A.D6(A.ca(q,B.af,B.o,B.B,0,B.E),B.d5,s,B.an))}}
 A.a8E.prototype={

@@ -21,7 +21,7 @@
   <link rel="icon" type="image/png" href="favicon.png"/>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
 
-  <title>مولّد الباركود الذكي v1.3.1</title>
+  <title>مولّد الباركود الذكي v1.3.2</title>
   <link rel="manifest" href="manifest.json">
   <style>
     body { margin: 0; padding: 0; background: #f5f7fa; }
@@ -62,7 +62,7 @@
   <div id="loading">
     <div class="spinner"></div>
     <div class="app-name">مولّد الباركود الذكي</div>
-    <div id="loading-status" style="font-size:12px;color:#9C9EB9;margin-top:4px;">v1.3.1 - جاري التحميل...</div>
+    <div id="loading-status" style="font-size:12px;color:#9C9EB9;margin-top:4px;">v1.3.2 - جاري التحميل...</div>
   </div>
 
   <div id="error-container">
@@ -82,13 +82,51 @@
       console.log('Loading screen hidden');
     }
 
+    function showError(title, detail) {
+      var err = document.getElementById('error-container');
+      if (err) {
+        var h = err.querySelector('h2');
+        if (h && title) h.textContent = title;
+        err.style.display = 'flex';
+        var det = document.getElementById('error-detail');
+        if (det) {
+          det.style.display = 'block';
+          det.textContent = detail || '';
+        }
+      }
+    }
+
+    // ---- Compatibility check (runs BEFORE Flutter loads) ----
+    (function() {
+      var compat = [];
+      compat.push('UA: ' + (navigator.userAgent || 'unknown'));
+      var canvas = document.createElement('canvas');
+      var gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+      if (!gl) {
+        compat.push('WebGL: غير مدعوم (مطلوب لتشغيل التطبيق)');
+        showError('متصفحك لا يدعم WebGL',
+          'هذا التطبيق يتطلب متصفحاً حديثاً (Chrome / Safari / Firefox / Edge أحدث إصدار). ' +
+          'يفضل فتح الموقع من المتصفح الخارجي وليس من داخل تطبيق آخر.\n\n' + compat.join('\n'));
+        return;
+      }
+      compat.push('WebGL: مدعوم');
+      var isWebView = /(wv|inapp|fbav|Twitter|Line|Instagram|Snapchat|TikTok)/i.test(navigator.userAgent);
+      if (isWebView) {
+        compat.push('تحذير: يبدو أنك تتصفح من داخل تطبيق (WebView). يفضل فتح الرابط في المتصفح الخارجي.');
+      }
+      console.log('Compatibility:', compat.join(' | '));
+      // store for later diagnostics
+      window.__compat = compat.join('\n');
+    })();
+
     // Layer 1: MutationObserver to detect Flutter view
     // This handles the case where the app starts rendering but JS doesn't call hideLoading
     var observer = new MutationObserver(function(mutations) {
       for (var i = 0; i < mutations.length; i++) {
         for (var j = 0; j < mutations[i].addedNodes.length; j++) {
           var node = mutations[i].addedNodes[j];
-          if (node.tagName === 'FLUTTER-VIEW' || node.nodeName === 'FLUTTER-VIEW') {
+          var name = node.tagName || node.nodeName || '';
+          if (name === 'FLUTTER-VIEW' || name === 'FLT-GLASS-PANE' || node.nodeName === 'FLUTTER-VIEW' || node.nodeName === 'FLT-GLASS-PANE') {
             hideLoading();
             observer.disconnect();
           }
@@ -100,34 +138,22 @@
     // Layer 2: Global error handler
     window.addEventListener('error', function(e) {
       console.error('Global error caught:', e);
-      var err = document.getElementById('error-container');
-      if (err) {
-        err.style.display = 'flex';
-        var detail = document.getElementById('error-detail');
-        if (detail) {
-          detail.style.display = 'block';
-          detail.textContent = 'Error: ' + (e.message || e.error || 'Unknown') +
-                               '\nAt: ' + (e.filename || 'unknown') + ':' + (e.lineno || '?') +
-                               '\nStack: ' + (e.error && e.error.stack ? e.error.stack : 'N/A');
-        }
-      }
+      var detail = 'Error: ' + (e.message || e.error || 'Unknown') +
+                   '\nAt: ' + (e.filename || 'unknown') + ':' + (e.lineno || '?') +
+                   '\nStack: ' + (e.error && e.error.stack ? e.error.stack : 'N/A');
+      if (window.__compat) detail += '\n\n' + window.__compat;
+      showError(null, detail);
     });
 
-    // Timeout fallback (60 seconds)
+    // Timeout fallback (90 seconds)
     setTimeout(function() {
       var loader = document.getElementById('loading');
       if (loader && loader.style.display !== 'none') {
-        var err = document.getElementById('error-container');
-        if (err) {
-          err.style.display = 'flex';
-          var detail = document.getElementById('error-detail');
-          if (detail) {
-            detail.style.display = 'block';
-            detail.textContent = 'انتهت مهلة التحميل. تأكد من جودة الاتصال بالإنترنت.';
-          }
-        }
+        var detail = 'انتهت مهلة التحميل. تأكد من جودة الاتصال بالإنترنت.';
+        if (window.__compat) detail += '\n\n' + window.__compat;
+        showError(null, detail);
       }
-    }, 60000);
+    }, 90000);
   </script>
 
   <script src="flutter_bootstrap.js" async></script>
