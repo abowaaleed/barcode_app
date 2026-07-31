@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مولد الباركود الاحترافي - تحويل الرابط والنص الى QR</title>
+  <meta name="description" content="أداة مجانية لإنشاء QR Code للروابط والنصوص وواتساب والبريد وWi-Fi مع الألوان وإضافة شعار وتحميل PNG بجودة عالية.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#" class="logo">
+        <span class="logo-icon">&#x1F4F1;</span>
+        <span class="logo-text">مولد الباركود الاحترافي</span>
+      </a>
+      <nav class="main-nav">
+        <a href="#" class="nav-link">الرئيسية</a>
+        <a href="#features" class="nav-link">المميزات</a>
+        <a href="#guide" class="nav-link">طريقة الاستخدام</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="sa-main-content">
+    <section class="hero">
+      <div class="container">
+        <div class="breadcrumb">
+          <a href="#">الرئيسية</a> <span class="sep">&#8246;</span> <span>الأدوات التقنية</span> <span class="sep">&#8246;</span> <span>مولد الباركود</span>
+        </div>
+        <h1 class="hero-title">إنشاء باركود QR - تحويل الرابط والنص الى باركود</h1>
+        <p class="hero-sub">إنشاء QR Code للنصوص والروابط وواتساب والبريد وWi-Fi مع الألوان وإضافة شعار وتحميل PNG. أداة مباشرة متوافقة مع الجوال بدون تسجيل.</p>
+      </div>
+    </section>
+
+    <section class="tool-section">
+      <div class="container">
+        <div class="tool-grid">
+
+          <!-- ============ يمين: الإدخال والتخصيص ============ -->
+          <div class="tool-panel">
+            <div class="panel-head">
+              <h2>اضبط الخيارات المطلوبة ثم أنشئ النتيجة</h2>
+              <span class="badge">مجاني</span>
+            </div>
+
+            <!-- تبويبات أنواع المحتوى -->
+            <div class="tabs" role="tablist" id="type-tabs">
+              <button class="tab active" data-type="text" role="tab">نص</button>
+              <button class="tab" data-type="url" role="tab">رابط</button>
+              <button class="tab" data-type="phone" role="tab">اتصال</button>
+              <button class="tab" data-type="sms" role="tab">SMS</button>
+              <button class="tab" data-type="whatsapp" role="tab">واتساب</button>
+              <button class="tab" data-type="email" role="tab">بريد</button>
+              <button class="tab" data-type="wifi" role="tab">Wi-Fi</button>
+            </div>
+
+            <!-- حقول كل نوع -->
+            <form id="qr-form" autocomplete="off">
+
+              <!-- نص -->
+              <div class="form-field" data-fieldgroup="text">
+                <label for="f-text">النص المراد تحويله</label>
+                <textarea id="f-text" rows="5" maxlength="3000" placeholder="اكتب النص هنا..."></textarea>
+                <div class="counter"><span id="text-count">0</span> / 3000</div>
+              </div>
+
+              <!-- رابط -->
+              <div class="form-field hidden" data-fieldgroup="url">
+                <label for="f-url">رابط الموقع أو الصفحة</label>
+                <input type="url" id="f-url" placeholder="https://example.com" dir="ltr">
+              </div>
+
+              <!-- اتصال -->
+              <div class="form-field hidden" data-fieldgroup="phone">
+                <label for="f-phone-code">مفتاح الدولة</label>
+                <input type="text" id="f-phone-code" placeholder="966" inputmode="numeric" dir="ltr">
+                <label for="f-phone-num">رقم الهاتف</label>
+                <input type="text" id="f-phone-num" placeholder="501234567" inputmode="tel" dir="ltr">
+                <small class="hint">اكتب مفتاح الدولة للاتصال الدولي.</small>
+              </div>
+
+              <!-- SMS -->
+              <div class="form-field hidden" data-fieldgroup="sms">
+                <label for="f-sms-phone">رقم الهاتف</label>
+                <input type="text" id="f-sms-phone" placeholder="501234567" inputmode="tel" dir="ltr">
+                <label for="f-sms-msg">نص الرسالة</label>
+                <textarea id="f-sms-msg" rows="4" placeholder="نص الرسالة..."></textarea>
+              </div>
+
+              <!-- واتساب -->
+              <div class="form-field hidden" data-fieldgroup="whatsapp">
+                <label for="f-wa-phone">رقم واتساب بمفتاح الدولة</label>
+                <input type="text" id="f-wa-phone" placeholder="966501234567" inputmode="tel" dir="ltr">
+                <label for="f-wa-msg">رسالة افتتاحية <span class="optional">(اختياري)</span></label>
+                <textarea id="f-wa-msg" rows="4" placeholder="نص الرسالة التي ستظهر مسبقاً..."></textarea>
+              </div>
+
+              <!-- بريد -->
+              <div class="form-field hidden" data-fieldgroup="email">
+                <label for="f-email-to">البريد الإلكتروني</label>
+                <input type="email" id="f-email-to" placeholder="name@example.com" dir="ltr">
+                <label for="f-email-subject">عنوان الرسالة</label>
+                <input type="text" id="f-email-subject">
+                <label for="f-email-body">محتوى الرسالة</label>
+                <textarea id="f-email-body" rows="4"></textarea>
+              </div>
+
+              <!-- Wi-Fi -->
+              <div class="form-field hidden" data-fieldgroup="wifi">
+                <label for="f-wifi-ssid">اسم الشبكة (SSID)</label>
+                <input type="text" id="f-wifi-ssid" placeholder="اسم شبكة الواي فاي">
+                <label for="f-wifi-sec">نوع الحماية</label>
+                <select id="f-wifi-sec">
+                  <option value="WPA">WPA / WPA2 / WPA3</option>
+                  <option value="WEP">WEP</option>
+                  <option value="nopass">بدون كلمة مرور</option>
+                </select>
+                <label for="f-wifi-pass">كلمة المرور</label>
+                <input type="text" id="f-wifi-pass">
+                <label class="checkbox-row">
+                  <input type="checkbox" id="f-wifi-hidden">
+                  <span>الشبكة مخفية</span>
+                </label>
+              </div>
+
+              <!-- ======== لوحة التخصيص ======== -->
+              <div class="customize-panel" id="customize-panel">
+                <h3 class="customize-title">تخصيص التصميم والشعار</h3>
+
+                <div class="color-row">
+                  <div class="color-item">
+                    <label for="c-color">لون الرمز</label>
+                    <input type="color" id="c-color" value="#111827">
+                  </div>
+                  <div class="color-item">
+                    <label for="c-bg">لون الخلفية</label>
+                    <input type="color" id="c-bg" value="#FFFFFF">
+                  </div>
+                </div>
+
+                <div class="res-row">
+                  <label for="c-size">دقة الصورة</label>
+                  <select id="c-size">
+                    <option value="384">384 × 384</option>
+                    <option value="512" selected>512 × 512</option>
+                    <option value="768">768 × 768</option>
+                    <option value="1024">1024 × 1024</option>
+                  </select>
+                </div>
+
+                <div class="logo-row">
+                  <label class="logo-toggle">
+                    <input type="checkbox" id="c-logo-toggle" checked>
+                    <span>إضافة شعار</span>
+                  </label>
+                  <input type="file" id="c-logo-file" accept="image/png,image/jpeg,image/webp">
+                  <small class="hint">PNG أو JPG أو WEBP — بحد أقصى 2MB</small>
+                  <div id="logo-preview-wrap" class="hidden">
+                    <img id="logo-preview" alt="الشعار المحدد">
+                    <button type="button" id="logo-remove" aria-label="إزالة الشعار">&times;</button>
+                  </div>
+                </div>
+
+                <div class="res-row" id="logo-size-row">
+                  <label for="c-logo-size">حجم الشعار <span id="logo-size-val">22%</span></label>
+                  <input type="range" id="c-logo-size" min="5" max="40" value="22">
+                </div>
+              </div>
+
+              <button type="submit" class="btn-generate" id="btn-generate">إنشاء QR Code</button>
+            </form>
+          </div>
+
+          <!-- ============ يسار: المعاينة ============ -->
+          <div class="preview-panel">
+            <div class="preview-box" id="preview-box">
+              <div class="preview-placeholder" id="preview-placeholder">
+                <div class="ph-icon">&#x1F5A5;&#xFE0F;</div>
+                <p>ستظهر المعاينة هنا</p>
+                <small>أدخل بياناتك واختر التصميم ثم اضغط «إنشاء QR Code».</small>
+              </div>
+              <div class="preview-result hidden" id="preview-result">
+                <img id="qr-img" alt="QR Code">
+                <div class="result-actions">
+                  <button type="button" class="btn-download" id="btn-download">&#x2B07; تنزيل PNG</button>
+                  <button type="button" class="btn-share" id="btn-share">&#x1F517; مشاركة</button>
+                </div>
+              </div>
+            </div>
+
+            <ul class="feature-list">
+              <li>&#x2713; دقة عالية</li>
+              <li>&#x2713; شعار اختياري</li>
+              <li>&#x2713; تنزيل PNG</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- نصائح -->
+        <div class="tips-section" id="features">
+          <h2>نصائح لضمان مسح سليم</h2>
+          <div class="tips-grid">
+            <div class="tip-card">
+              <div class="tip-num">1</div>
+              <h3>استخدم تبايناً قوياً</h3>
+              <p>اختر لوناً داكناً للرمز وخلفية فاتحة حتى يسهل مسحه.</p>
+            </div>
+            <div class="tip-card">
+              <div class="tip-num">2</div>
+              <h3>شعار بسيط وواضح</h3>
+              <p>الأفضل شعار مربع بخلفية شفافة، مع إبقاء حجمه أقل من 25%.</p>
+            </div>
+            <div class="tip-card">
+              <div class="tip-num">3</div>
+              <h3>اختبر الرمز</h3>
+              <p>امسحه بكاميرا هاتف آخر قبل الطباعة أو النشر.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- دليل الاستخدام -->
+        <div class="guide-section" id="guide">
+          <h2>طريقة الاستخدام</h2>
+          <ol class="guide-list">
+            <li>اختر نوع التحويل من التبويبات أعلاه (نص، رابط، اتصال، SMS، واتساب، بريد، Wi-Fi).</li>
+            <li>أدخل البيانات المطلوبة في الحقول المخصصة.</li>
+            <li>خصص التصميم: لون الرمز، لون الخلفية، الدقة، وأضف شعارك إن رغبت.</li>
+            <li>اضغط زر «إنشاء QR Code».</li>
+            <li>سيعمل الزر آلياً على إضافة أي بادئة ناقصة (مثل https:// أو tel: أو SMSTO:) لضمان عمل الرمز بعد المسح.</li>
+            <li>حمّل الرمز كصورة PNG بجودة عالية وشاركه أينما تريد.</li>
+          </ol>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>جميع الحقوق محفوظة &copy; <span id="year"></span> — مولد الباركود الاحترافي</p>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script src="js/qrcode.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
